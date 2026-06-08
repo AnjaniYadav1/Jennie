@@ -1,0 +1,372 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Lato', sans-serif;
+    background: linear-gradient(160deg, #e8f4f8 0%, #d0eaf5 40%, #c2dff0 75%, #b8d4e8 100%);
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .petal {
+    position: fixed; border-radius: 50% 0 50% 0;
+    opacity: 0.2; pointer-events: none;
+    animation: floatPetal linear infinite;
+  }
+  .page { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; min-height: 100vh; padding: 2rem 0; }
+  .page.active { display: flex; animation: fadeUp 0.7s ease both; }
+  .card {
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(64,164,213,0.3);
+    border-radius: 32px;
+    padding: 3rem 2.5rem;
+    text-align: center;
+    max-width: 440px; width: 90%;
+    box-shadow: 0 24px 64px rgba(64,164,213,0.15), 0 2px 8px rgba(32,120,180,0.1);
+    position: relative; z-index: 10;
+  }
+  .card-top-tag {
+    font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: #2a7fb5; margin-bottom: 1.4rem;
+    display: inline-block; padding: 0.25rem 0.9rem;
+    border: 1px solid rgba(42,127,181,0.35); border-radius: 999px;
+  }
+  .card-title { font-family: 'Playfair Display', serif; font-size: clamp(1.7rem, 5vw, 2.4rem); font-weight: 700; line-height: 1.2; color: #1a3d5c; margin-bottom: 0.9rem; }
+  .card-title em { color: #40a4d5; font-style: italic; }
+  .card-sub { font-size: 0.82rem; color: #6a9ab5; font-weight: 300; letter-spacing: 0.04em; margin-bottom: 1.8rem; }
+  .eye-emoji { font-size: 2.2rem; display: block; margin-bottom: 1rem; animation: blink 3s ease-in-out infinite; }
+  .card-cta { font-size: 0.88rem; color: #2a6080; font-weight: 300; margin-bottom: 2rem; font-style: italic; }
+  .divider { width: 48px; height: 1px; background: rgba(64,164,213,0.4); margin: 0 auto 1.5rem; }
+  .big-emoji { font-size: 4.5rem; display: block; margin-bottom: 1.2rem; animation: wobble 2.5s ease-in-out infinite; }
+  .wait-text { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; color: #1565a0; margin-bottom: 0.8rem; }
+  .ready-text { font-size: 1rem; color: #1a3d5c; font-weight: 300; margin-bottom: 2rem; line-height: 1.6; }
+  .btn-row { display: flex; gap: 1rem; justify-content: center; }
+  .btn {
+    font-family: 'Lato', sans-serif; font-size: 1rem; font-weight: 700;
+    padding: 0.75rem 2.2rem; border: none; border-radius: 999px;
+    cursor: pointer; color: #000;
+    transition: transform 0.18s, box-shadow 0.18s, background 0.15s;
+    letter-spacing: 0.06em;
+  }
+  .btn:active { background: #e00000 !important; color: #fff !important; transform: scale(0.95); }
+  .btn-pink { background: #40a4d5; box-shadow: 0 6px 20px rgba(64,164,213,0.5); }
+  .btn-pink:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(64,164,213,0.6); }
+  .btn-yellow { background: #7ecfcf; box-shadow: 0 6px 20px rgba(126,207,207,0.45); }
+  .btn-yellow:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(126,207,207,0.55); }
+  .shake { animation: shake 0.4s ease; }
+  .p3-heading { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-style: italic; color: #1565a0; margin-bottom: 1.6rem; line-height: 1.4; }
+
+  /* PAGE 4 */
+  .p4-big-emoji { font-size: 4.8rem; display: block; margin-bottom: 1.3rem; animation: peek 3s ease-in-out infinite; }
+  .p4-hold { font-family: 'Playfair Display', serif; font-size: 1.55rem; font-weight: 700; color: #1a7fbf; margin-bottom: 0.75rem; }
+  .p4-secret { font-size: 1rem; color: #111; font-weight: 400; margin-bottom: 0.6rem; line-height: 1.6; }
+  .p4-question { font-size: 0.92rem; color: #6a9ab5; font-weight: 300; margin-bottom: 2rem; font-style: italic; }
+  .bouquet-wrap { margin: 0 auto 1.8rem; width: 240px; height: 260px; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);} }
+  @keyframes floatPetal { 0%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-28px) rotate(18deg);}100%{transform:translateY(0) rotate(0deg);} }
+  @keyframes blink { 0%,90%,100%{transform:scaleY(1);}95%{transform:scaleY(0.1);} }
+  @keyframes wobble { 0%,100%{transform:rotate(-5deg) scale(1);}50%{transform:rotate(5deg) scale(1.08);} }
+  @keyframes shake { 0%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-6px);}80%{transform:translateX(6px);}100%{transform:translateX(0);} }
+  @keyframes sway { 0%,100%{transform:rotate(-2deg);}50%{transform:rotate(2deg);} }
+  @keyframes peek { 0%,100%{transform:scale(1) rotate(-4deg);}50%{transform:scale(1.1) rotate(4deg);} }
+</style>
+</head>
+<body>
+
+<div class="petal" style="width:70px;height:70px;background:#40a4d5;top:8%;left:4%;animation-duration:7s;"></div>
+<div class="petal" style="width:45px;height:45px;background:#7ecfcf;top:15%;right:6%;animation-duration:9s;animation-delay:2s;"></div>
+<div class="petal" style="width:30px;height:30px;background:#a8d8ea;bottom:20%;left:8%;animation-duration:6s;animation-delay:1s;"></div>
+<div class="petal" style="width:55px;height:55px;background:#b8e4f0;bottom:12%;right:4%;animation-duration:8s;animation-delay:3s;"></div>
+<div class="petal" style="width:35px;height:35px;background:#5bc8e0;top:45%;left:2%;animation-duration:10s;animation-delay:0.5s;"></div>
+
+<!-- PAGE 1 -->
+<div class="page active" id="page1">
+  <div class="card" id="card1">
+    <span class="card-top-tag">🌸 June 8 · Best Friend Day</span>
+    <h1 class="card-title">Happy Bestfriends<br>Day <em>Jennie</em> 🎀</h1>
+    <div class="divider"></div>
+    <p class="card-sub">(I have made something for you)</p>
+    <span class="eye-emoji">👁️</span>
+    <p class="card-cta">But only if you say yes</p>
+    <div class="btn-row">
+      <button class="btn btn-pink" onclick="goTo('page2')">Ofc</button>
+      <button class="btn btn-yellow" onclick="shakePage1()">Nope</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2 -->
+<div class="page" id="page2">
+  <div class="card">
+    <span class="big-emoji">🤭</span>
+    <p class="wait-text">Wait wait wait...</p>
+    <p class="ready-text">Are you sure you're ready?</p>
+    <div class="btn-row">
+      <button class="btn btn-pink" onclick="goTo('page3')">I'm ready</button>
+      <button class="btn btn-yellow" onclick="goTo('page1')">Na</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 3 -->
+<div class="page" id="page3">
+  <div class="card">
+    <p class="p3-heading">First... some flowers for you 🌸</p>
+    <div class="bouquet-wrap">
+      <svg viewBox="0 0 240 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;animation:sway 4s ease-in-out infinite;transform-origin:bottom center;">
+        <line x1="120" y1="255" x2="100" y2="180" stroke="#4caf50" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="120" y1="255" x2="120" y2="175" stroke="#388e3c" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="120" y1="255" x2="140" y2="180" stroke="#4caf50" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="120" y1="255" x2="78" y2="170" stroke="#4caf50" stroke-width="2" stroke-linecap="round"/>
+        <line x1="120" y1="255" x2="162" y2="170" stroke="#4caf50" stroke-width="2" stroke-linecap="round"/>
+        <line x1="120" y1="255" x2="60" y2="165" stroke="#388e3c" stroke-width="2" stroke-linecap="round"/>
+        <line x1="120" y1="255" x2="180" y2="165" stroke="#388e3c" stroke-width="2" stroke-linecap="round"/>
+        <ellipse cx="90" cy="215" rx="14" ry="7" fill="#66bb6a" transform="rotate(-35 90 215)"/>
+        <ellipse cx="152" cy="215" rx="14" ry="7" fill="#66bb6a" transform="rotate(35 152 215)"/>
+        <ellipse cx="76" cy="200" rx="11" ry="5" fill="#81c784" transform="rotate(-45 76 200)"/>
+        <ellipse cx="165" cy="200" rx="11" ry="5" fill="#81c784" transform="rotate(45 165 200)"/>
+        <path d="M105 240 Q120 233 135 240" stroke="#f48fb1" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M108 238 Q100 228 112 232" stroke="#f48fb1" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M132 238 Q140 228 128 232" stroke="#f48fb1" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M95 235 Q90 215 100 195 L140 195 Q150 215 145 235 Z" fill="#fff9c4" opacity="0.55" stroke="#f9d5e5" stroke-width="1"/>
+        <g transform="translate(120,138)">
+          <ellipse cx="0" cy="-18" rx="6" ry="12" fill="#fdd835" transform="rotate(0)"/>
+          <ellipse cx="0" cy="-18" rx="6" ry="12" fill="#fdd835" transform="rotate(45)"/>
+          <ellipse cx="0" cy="-18" rx="6" ry="12" fill="#fdd835" transform="rotate(90)"/>
+          <ellipse cx="0" cy="-18" rx="6" ry="12" fill="#fdd835" transform="rotate(135)"/>
+          <ellipse cx="0" cy="-18" rx="6" ry="12" fill="#fdd835" transform="rotate(180)"/>
+          <ellipse cx="0" cy="-18" rx="6" ry="12" fill="#fdd835" transform="rotate(225)"/>
+          <ellipse cx="0" cy="-18" rx="6" ry="12" fill="#fdd835" transform="rotate(270)"/>
+          <ellipse cx="0" cy="-18" rx="6" ry="12" fill="#fdd835" transform="rotate(315)"/>
+          <circle cx="0" cy="0" r="13" fill="#4e342e"/>
+          <circle cx="0" cy="0" r="8" fill="#6d4c41"/>
+          <circle cx="0" cy="-4" r="1.5" fill="#3e2723" opacity="0.7"/>
+          <circle cx="3" cy="2" r="1.5" fill="#3e2723" opacity="0.7"/>
+          <circle cx="-3" cy="2" r="1.5" fill="#3e2723" opacity="0.7"/>
+          <circle cx="0" cy="5" r="1.5" fill="#3e2723" opacity="0.7"/>
+        </g>
+        <g transform="translate(82,148)">
+          <ellipse cx="0" cy="0" rx="15" ry="12" fill="#e53935"/>
+          <ellipse cx="-6" cy="-4" rx="10" ry="8" fill="#ef5350"/>
+          <ellipse cx="5" cy="-5" rx="9" ry="7" fill="#ef5350"/>
+          <ellipse cx="0" cy="-8" rx="7" ry="6" fill="#f44336"/>
+          <ellipse cx="-2" cy="-2" rx="5" ry="4" fill="#c62828"/>
+          <ellipse cx="0" cy="0" rx="3" ry="2.5" fill="#b71c1c"/>
+        </g>
+        <g transform="translate(158,148)">
+          <ellipse cx="0" cy="0" rx="15" ry="12" fill="#e91e8c"/>
+          <ellipse cx="-6" cy="-4" rx="10" ry="8" fill="#f06292"/>
+          <ellipse cx="5" cy="-5" rx="9" ry="7" fill="#f06292"/>
+          <ellipse cx="0" cy="-8" rx="7" ry="6" fill="#ec407a"/>
+          <ellipse cx="-2" cy="-2" rx="5" ry="4" fill="#c2185b"/>
+          <ellipse cx="0" cy="0" rx="3" ry="2.5" fill="#ad1457"/>
+        </g>
+        <g transform="translate(55,158)">
+          <ellipse cx="0" cy="0" rx="13" ry="10" fill="#fce4ec"/>
+          <ellipse cx="-5" cy="-3" rx="9" ry="7" fill="#fff"/>
+          <ellipse cx="4" cy="-4" rx="8" ry="6" fill="#fff"/>
+          <ellipse cx="0" cy="-7" rx="6" ry="5" fill="#fce4ec"/>
+          <ellipse cx="-1" cy="-2" rx="4" ry="3" fill="#f8bbd0"/>
+          <ellipse cx="0" cy="0" rx="2.5" ry="2" fill="#f48fb1"/>
+        </g>
+        <g transform="translate(185,158)">
+          <ellipse cx="0" cy="0" rx="13" ry="10" fill="#ce93d8"/>
+          <ellipse cx="-5" cy="-3" rx="9" ry="7" fill="#e1bee7"/>
+          <ellipse cx="4" cy="-4" rx="8" ry="6" fill="#e1bee7"/>
+          <ellipse cx="0" cy="-7" rx="6" ry="5" fill="#ce93d8"/>
+          <ellipse cx="-1" cy="-2" rx="4" ry="3" fill="#ab47bc"/>
+          <ellipse cx="0" cy="0" rx="2.5" ry="2" fill="#8e24aa"/>
+        </g>
+        <circle cx="68" cy="143" r="3.5" fill="#fff" stroke="#f8bbd0" stroke-width="1"/>
+        <circle cx="73" cy="136" r="3" fill="#fff" stroke="#f8bbd0" stroke-width="1"/>
+        <circle cx="170" cy="140" r="3.5" fill="#fff" stroke="#f8bbd0" stroke-width="1"/>
+        <circle cx="174" cy="132" r="3" fill="#fff" stroke="#f8bbd0" stroke-width="1"/>
+        <circle cx="105" cy="125" r="3" fill="#fff" stroke="#f8bbd0" stroke-width="1"/>
+        <circle cx="135" cy="123" r="3" fill="#fff" stroke="#f8bbd0" stroke-width="1"/>
+        <circle cx="62" cy="152" r="2.5" fill="#fff" stroke="#f8bbd0" stroke-width="1"/>
+        <circle cx="178" cy="150" r="2.5" fill="#fff" stroke="#f8bbd0" stroke-width="1"/>
+      </svg>
+    </div>
+    <button class="btn btn-pink" onclick="goTo('page4')" style="margin-top:0.5rem;">See more 🌷</button>
+  </div>
+</div>
+
+<!-- PAGE 4 -->
+<div class="page" id="page4">
+  <div class="card">
+    <span class="p4-big-emoji">🫣</span>
+    <p class="p4-hold">Okay but hold on..</p>
+    <p class="p4-secret">There's a secret message inside</p>
+    <p class="p4-question">Do you really want to read it?</p>
+    <div class="btn-row">
+      <button class="btn btn-pink" onclick="goTo('page5')">Yes show me</button>
+      <button class="btn btn-yellow" onclick="goTo('page1')">No thx</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 5 -->
+<div class="page" id="page5">
+  <div class="card" style="max-width:480px;padding:2.5rem 2rem;">
+    <p style="
+      font-family:'Playfair Display',serif;
+      font-size:1.45rem;
+      font-weight:700;
+      color:#1a7fbf;
+      text-align:center;
+      margin-bottom:1.6rem;
+      letter-spacing:0.01em;
+      line-height:1.3;
+    ">💌 A note from my heart</p>
+
+    <div style="
+      background:rgba(64,164,213,0.07);
+      border:1px solid rgba(64,164,213,0.25);
+      border-radius:20px;
+      padding:1.4rem 1.5rem;
+      text-align:left;
+      margin-bottom:1.8rem;
+      max-height:340px;
+      overflow-y:auto;
+      scrollbar-width:thin;
+      scrollbar-color:#40a4d5 transparent;
+    ">
+      <p style="font-family:'Lato',sans-serif;font-size:0.92rem;color:#1a3d5c;font-weight:400;line-height:1.85;margin:0;">
+        Dear Janki,<br><br>
+        So yaar i think so ki tumhe yaad hoga aaj Bestfriends day hai, aur ab tum yeh soch rhi hogi ki mein tumhe bestfriends day kyu wish kar rha hu ham toh sirf frds haina, so u are absolutely right, but for me u are my bestfriend without any tag. <br><br>
+        So cutie as u know hamari friendship ki start thodi alag tarika se hui thi, us din tum mujhse baat tak nhi karna chahti thi aur aaj dekho ham kitna acche dost hai, ik woh time mein wrong tha but at the end sab sahi hua. <br><br>
+        Ab toh hamhe almost <strong style="color:#1a7fbf;">1 years</strong> ho gayi as a friend. Thank mere ups and downs me sath rehne ke liye, u really mean a lot to me, Uk Diya also means a lot to me jusk bcz I love her, but in terms of frienship u mean me a lot.🌸<br><br>
+        Ik mein thoda immature hu, mein cheezein kharab kar deta hu sometimes. Uk, kabhi kabhi sochta hu ki tu mujhe kaise jhelti hogi. Mein bolta bohot hu ik — but unse hi bolta hu jo mere kareeb hote hain.<br><br>
+        Uk, kuch log hamari life mein hamhe woh damages se heal kar deta hai joh damages unhone diye hi nhi hai <em style="color:#1565a0;">u are the one</em>. Hoping so ham aage bhi aaise hi dost rahe, if kabhi koi galti ho toh maaf kar dena afterall pagal huna thoda sa mein 🤍<br><br>
+        <strong style="color:#1a7fbf;">Happy Bestfriends Day Daku ji.</strong> Thank you for being the person you are...🌷<br><br>
+        <span style="font-family:'Playfair Display',serif;font-style:italic;color:#2a6080;">Yours,<br>Mr. Charlie 💕</span>
+      </p>
+    </div>
+
+    <div class="btn-row" style="margin-top:1rem;">
+      <button class="btn btn-pink" onclick="goTo('page6')" style="font-size:0.85rem;padding:0.65rem 1.8rem;">Continue ✨</button>
+    </div>
+  </div>
+</div>
+<div class="page" id="page6">
+  <div class="card" style="max-width:480px;padding:2.5rem 2rem;">
+
+    <p style="
+      font-family:'Playfair Display',serif;
+      font-size:1.35rem;font-weight:700;
+      color:#1a7fbf;text-align:center;
+      margin-bottom:1.6rem;letter-spacing:0.01em;
+    ">🕰️ It's Already Been...</p>
+
+    <div style="display:flex;justify-content:center;gap:1rem;margin-bottom:1.4rem;flex-wrap:wrap;">
+      <div style="text-align:center;">
+        <div id="cd-years" style="font-family:'Playfair Display',serif;font-size:2.6rem;font-weight:700;color:#1565a0;background:rgba(64,164,213,0.12);border:1px solid rgba(64,164,213,0.35);border-radius:16px;padding:0.6rem 1.1rem;min-width:72px;line-height:1;">0</div>
+        <p style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#6a9ab5;margin-top:0.4rem;">Years</p>
+      </div>
+      <div style="text-align:center;">
+        <div id="cd-months" style="font-family:'Playfair Display',serif;font-size:2.6rem;font-weight:700;color:#1565a0;background:rgba(64,164,213,0.12);border:1px solid rgba(64,164,213,0.35);border-radius:16px;padding:0.6rem 1.1rem;min-width:72px;line-height:1;">0</div>
+        <p style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#6a9ab5;margin-top:0.4rem;">Months</p>
+      </div>
+      <div style="text-align:center;">
+        <div id="cd-days" style="font-family:'Playfair Display',serif;font-size:2.6rem;font-weight:700;color:#1565a0;background:rgba(64,164,213,0.12);border:1px solid rgba(64,164,213,0.35);border-radius:16px;padding:0.6rem 1.1rem;min-width:72px;line-height:1;">0</div>
+        <p style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#6a9ab5;margin-top:0.4rem;">Days</p>
+      </div>
+    </div>
+
+    <div style="width:48px;height:1px;background:rgba(64,164,213,0.35);margin:0 auto 1.2rem;"></div>
+
+    <div style="display:flex;justify-content:center;align-items:flex-start;gap:0.5rem;margin-bottom:1.6rem;flex-wrap:wrap;">
+      <div style="text-align:center;">
+        <div id="cd-hours" style="font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;color:#1a7fbf;background:rgba(126,207,207,0.15);border:1px solid rgba(126,207,207,0.4);border-radius:12px;padding:0.45rem 0.85rem;min-width:60px;line-height:1;">00</div>
+        <p style="font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:#6a9ab5;margin-top:0.35rem;">Hours</p>
+      </div>
+      <span style="font-family:'Playfair Display',serif;font-size:1.9rem;color:#40a4d5;padding-top:0.3rem;">:</span>
+      <div style="text-align:center;">
+        <div id="cd-minutes" style="font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;color:#1a7fbf;background:rgba(126,207,207,0.15);border:1px solid rgba(126,207,207,0.4);border-radius:12px;padding:0.45rem 0.85rem;min-width:60px;line-height:1;">00</div>
+        <p style="font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:#6a9ab5;margin-top:0.35rem;">Minutes</p>
+      </div>
+      <span style="font-family:'Playfair Display',serif;font-size:1.9rem;color:#40a4d5;padding-top:0.3rem;">:</span>
+      <div style="text-align:center;">
+        <div id="cd-seconds" style="font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;color:#1a7fbf;background:rgba(126,207,207,0.15);border:1px solid rgba(126,207,207,0.4);border-radius:12px;padding:0.45rem 0.85rem;min-width:60px;line-height:1;">00</div>
+        <p style="font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:#6a9ab5;margin-top:0.35rem;">Seconds</p>
+      </div>
+    </div>
+
+    <p style="font-family:'Playfair Display',serif;font-size:1.05rem;font-style:italic;color:#2a6080;text-align:center;margin-bottom:1.8rem;">And still counting... 🌊</p>
+
+    <div style="margin-top:0.5rem;padding:1.6rem 1.4rem;background:rgba(64,164,213,0.08);border:1px solid rgba(64,164,213,0.28);border-radius:20px;text-align:center;">
+      <span style="font-size:2rem;display:block;margin-bottom:0.6rem;">🥺💙</span>
+      <p style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:#1a7fbf;margin-bottom:0.6rem;line-height:1.3;">Thank you for being you</p>
+      <p style="font-size:0.88rem;color:#1a3d5c;line-height:1.85;font-weight:300;margin-bottom:0.5rem;">
+        Every second of this countdown is a reminder of how lucky I am to have you in my life. 🌊<br>
+        You're not just a friend — you're home. 🤍
+      </p>
+      <p style="font-family:'Playfair Display',serif;font-size:0.95rem;font-style:italic;color:#1565a0;">Happy Bestfriends Day, Daku ji 🎀</p>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  function goTo(pageId) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById(pageId);
+    target.classList.add('active');
+    target.style.animation = 'none';
+    void target.offsetWidth;
+    target.style.animation = '';
+  }
+
+  function shakePage1() {
+    const card = document.getElementById('card1');
+    card.classList.remove('shake');
+    void card.offsetWidth;
+    card.classList.add('shake');
+    card.addEventListener('animationend', () => card.classList.remove('shake'), { once: true });
+  }
+
+  // Countdown from 6th November 2023
+  const START = new Date('2025-01-12T00:00:00');
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function updateCountdown() {
+    const now = new Date();
+    const diff = now - START;
+
+    let years = now.getFullYear() - START.getFullYear();
+    let months = now.getMonth() - START.getMonth();
+    if (months < 0) { years--; months += 12; }
+
+    const monthStart = new Date(START);
+    monthStart.setFullYear(monthStart.getFullYear() + years);
+    monthStart.setMonth(monthStart.getMonth() + months);
+    const daysDiff = Math.floor((now - monthStart) / (1000 * 60 * 60 * 24));
+
+    const totalSeconds = Math.floor(diff / 1000);
+    const hours   = Math.floor(totalSeconds / 3600) % 24;
+    const minutes = Math.floor(totalSeconds / 60) % 60;
+    const seconds = totalSeconds % 60;
+
+    document.getElementById('cd-years').textContent   = years;
+    document.getElementById('cd-months').textContent  = months;
+    document.getElementById('cd-days').textContent    = daysDiff;
+    document.getElementById('cd-hours').textContent   = pad(hours);
+    document.getElementById('cd-minutes').textContent = pad(minutes);
+    document.getElementById('cd-seconds').textContent = pad(seconds);
+  }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+</script>
+</body>
+</html>
